@@ -1,5 +1,7 @@
-python validation.py --seed 2023\
- -vp ./results/vis_sam_med3d \
- -cp ./ckpt/sam_med3d.pth \
- -tdp ./data/validation_test1 -nc 10 \
- --save_name ./results/sam_med3d.py
+python inference.py --seed 2024\
+ -cp ./ckpt/sam_med3d_turbo.pth \
+ -tdp ./data/medical_preprocessed -nc 1 \
+ --output_dir ./results  \
+ --task_name infer_turbo  
+ #--sliding_window
+ #--save_image_and_gt

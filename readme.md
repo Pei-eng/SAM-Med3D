@@ -1,21 +1,72 @@
 # SAM-Med3D \[[Paper](https://arxiv.org/abs/2310.15161)]
+[![x](https://img.shields.io/badge/cs.CV-2310.15161-b31b1b?logo=arxiv&logoColor=red)](https://arxiv.org/abs/2310.15161)
+[![x](https://img.shields.io/badge/WeChat-Group-green?logo=wechat)](https://github.com/uni-medical/SAM-Med3D/tree/main?tab=readme-ov-file#-discussion-group)
 
+
+The official repo of "SAM-Med3D: Towards General-purpose Segmentation Models for Volumetric Medical Images".
 
 <div align="center">
   <img src="assets/motivation.png">
 </div>
 
 ## 🔥🌻📰 News 📰🌻🔥
-- **[New Checkpoints Release]** Finetuned SAM-Med3D for organ/brain segmentation is released now! Hope you enjoy the enhanced performance for specific tasks 😉. Details are in [results](https://github.com/uni-medical/SAM-Med3D/blob/main/readme.md#-dice-on-different-anatomical-architecture-and-lesions) and [ckpt](https://github.com/uni-medical/SAM-Med3D#-checkpoint).
-- **[Recommendation]** If you are interested in computer vision, 
+- **[Examples]** SAM-Med3D is now supported in [MedIM](https://github.com/uni-medical/MedIM), you can easily get our model with one-line Python code. Our new example is in [`medim_infer.py`](https://github.com/uni-medical/SAM-Med3D/blob/main/medim_infer.py).
+- **[Data]** We have now released all labels of our training dataset SA-Med3D-140K. Due to the large volume of image data (over 1T), we are currently seeking an appropriate release method. For now, you can directly contact small_dark@sina.com to obtain it. Download Link: [Baidu Netdisk](https://pan.baidu.com/s/12Nxwd10uVZs57O8WP8Y-Hg?pwd=cv6t) and [Google Drive](https://drive.google.com/file/d/1F7lRWM5mdEKSRQtvJ8ExEyNrWIEkXc-G/view?usp=drive_link).
+- **[Paper]** SAM-Med3D is accepted as [ECCV BIC 2024 Oral](https://www.bioimagecomputing.com/program/selected-contributions/)
+- **[Model]** A newer version of finetuned SAM-Med3D named `SAM-Med3D-turbo` is released now. We fine-tuned it on 44 datasets ([list](https://github.com/uni-medical/SAM-Med3D/issues/2#issuecomment-1849002225)) to improve the performance. Hope this update can help you 🙂.
+- **[Model]** Finetuned SAM-Med3D for organ/brain segmentation is released now! Hope you enjoy the enhanced performance for specific tasks 😉. Details are in [results](https://github.com/uni-medical/SAM-Med3D/blob/main/readme.md#-dice-on-different-anatomical-architecture-and-lesions) and [ckpt](https://github.com/uni-medical/SAM-Med3D#-checkpoint).
+- **[Repos]** If you are interested in computer vision, 
 we recommend checking out [OpenGVLab](https://github.com/OpenGVLab) for more exciting projects like [SAM-Med2D](https://github.com/OpenGVLab/SAM-Med2D/tree/main)!
 
 ## 🌟 Highlights
-- 📚 Curated the most extensive volumetric medical dataset to date for training, boasting 131K 3D masks and 247 categories.
+- 📚 Curated the most extensive volumetric medical dataset to date for training, boasting 143K 3D masks and 245 categories.
 - 🚤 Achieved efficient promptable segmentation, requiring 10 to 100 times fewer prompt points for satisfactory 3D outcomes.
-- 🏆 Conducted a thorough assessment of SAM-Med3D across 15 frequently used volumetric medical image segmentation datasets.
+- 🏆 Conducted a thorough assessment of SAM-Med3D across 16 frequently used volumetric medical image segmentation datasets.
 
 ## 🔨 Usage
+### Quick Start for SAM-Med3D inference
+> **Note:**
+> Currently, labels are required to generate prompt points for inference.
+
+First, set up your environment with the following commands:
+```
+conda create --name sammed3d python=3.10 
+conda activate sammed3d
+pip install light-the-torch && ltt install torch
+pip install torchio opencv-python-headless matplotlib prefetch_generator monai edt medim
+```
+Then, use [`medim_infer.py`](https://github.com/uni-medical/SAM-Med3D/blob/main/medim_infer.py) to test the inference:
+```
+python medim_infer.py
+```
+
+If you want to run inference on your own data, refer to [`medim_infer.py`](https://github.com/uni-medical/SAM-Med3D/blob/main/medim_infer.py) for more details. You can simply modify the paths in the script to use your own data. Here's the main logic:
+```
+  ''' 1. read and pre-process your input data '''
+  img_path = "./test_data/kidney_right/AMOS/imagesVal/amos_0013.nii.gz"
+  gt_path =  "./test_data/kidney_right/AMOS/labelsVal/amos_0013.nii.gz"
+  category_index = 3  # the index of your target category in the gt annotation
+  output_dir = "./test_data/kidney_right/AMOS/pred/"
+  roi_image, roi_label, meta_info = data_preprocess(img_path, gt_path, category_index=category_index)
+  
+  ''' 2. prepare the pre-trained model with local path or huggingface url '''
+  ckpt_path = "https://huggingface.co/blueyo0/SAM-Med3D/blob/main/sam_med3d_turbo.pth"
+  # or you can use the local path like: ckpt_path = "./ckpt/sam_med3d_turbo.pth"
+  model = medim.create_model("SAM-Med3D",
+                              pretrained=True,
+                              checkpoint_path=ckpt_path)
+  
+  ''' 3. infer with the pre-trained SAM-Med3D model '''
+  roi_pred = sam_model_infer(model, roi_image, roi_gt=roi_label)
+
+  ''' 4. post-process and save the result '''
+  output_path = osp.join(output_dir, osp.basename(img_path).replace(".nii.gz", "_pred.nii.gz"))
+  data_postprocess(roi_pred, meta_info, output_path, img_path)
+
+  print("result saved to", output_path)
+```
+
+
 ### Training / Fine-tuning
 (we recommend fine-tuning with SAM-Med3D pre-trained weights from [link](https://github.com/uni-medical/SAM-Med3D#-checkpoint))
 
@@ -23,14 +74,20 @@ To train the SAM-Med3D model on your own data, follow these steps:
 
 #### 0. **(Recommend) Prepare the Pre-trained Weights**
 
-Download the checkpoint from [ckpt section](https://github.com/uni-medical/SAM-Med3D#-checkpoint) and move the pth file into `SAM_Med3D/ckpt/sam_med3d.pth`.
+> Note: You can easily get PyTorch SAM-Med3D model with pre-trained weights from huggingface use `MedIM`.
+> ```
+> ckpt_path = "https://huggingface.co/blueyo0/SAM-Med3D/blob/main/sam_med3d_turbo.pth"
+> model = medim.create_model("SAM-Med3D", pretrained=True, checkpoint_path=ckpt_path)
+> ```
+
+Download the checkpoint from [ckpt section](https://github.com/uni-medical/SAM-Med3D#-checkpoint) and move the pth file into `SAM_Med3D/ckpt/` (We recommand to use `SAM-Med3D-turbo.pth`).
 
 
 #### 1. Prepare Your Training Data (from nnU-Net-style dataset): 
 
-Ensure that your training data is organized according to the structure shown in the `data/validation` directories. The target file structures should be like the following:
+Ensure that your training data is organized according to the structure shown in the `data/medical_preprocessed` directories. The target file structures should be like the following:
 ```
-data/train
+data/medical_preprocessed
       ├── adrenal
       │ ├── ct_WORD
       │ │ ├── imagesTr
@@ -46,15 +103,15 @@ data/train
 > 
 > For a nnU-Net style dataset, the original file structure should be:
 > ```
-> Dataset10_WORD
+> Task010_WORD
 >      ├── imagesTr
->      │ ├── word_0025.nii.gz
+>      │ ├── word_0025_0000.nii.gz
 >      │ ├── ...
 >      ├── labelsTr
 >      │ ├── word_0025.nii.gz
 >      │ ├── ...
 > ```
-> If the labels have multiple classes, you should first split them into multiple binary labels, then re-organize them into multiple sub-folders.
+> Then you should resample and convert the masks into binary. (You can use [script](https://github.com/uni-medical/SAM-Med3D/blob/b77585070b2f520ecd204b551a3f27715f5b3b43/utils/prepare_data_from_nnUNet.py) for nnU-Net folder)
 > ```
 > data/train
 >       ├── adrenal
@@ -108,16 +165,16 @@ The key options are listed below:
 
 **Hint**: Use the `--checkpoint` to set the pre-trained weight path, the model will be trained from scratch if no ckpt in the path is found!
 
-### Evaluation
+### Evaluation & Inference
 Prepare your own dataset and refer to the samples in `data/validation` to replace them according to your specific scenario. 
-Then you can simply run `bash infer.sh` to test SAM-Med3D on your data. 
-Make sure the masks are processed into the one-hot format (have only two values: the main image (foreground) and the background).
+Then you can simply run `bash val.sh` to **quickly validate** SAM-Med3D on your data. Or you can use `bash infer.sh` to **generate full-volume results** for your application.
+Make sure the masks are processed into the one-hot format (have only two values: the main image (foreground) and the background). We highly recommend using the spacing of `1.5mm` for the best experience.
 
 ```
 python validation.py --seed 2023\
  -vp ./results/vis_sam_med3d \
- -cp ./ckpt/sam_med3d.pth \
- -tdp ./data/validation -nc 1 \
+ -cp ./ckpt/sam_med3d_turbo.pth \
+ -tdp ./data/medical_preprocessed -nc 1 \
  --save_name ./results/sam_med3d.py
 ```
 
@@ -126,17 +183,35 @@ python validation.py --seed 2023\
 - tdp: test data path, where your data is placed
 - nc: number of clicks of prompt points
 - save_name: filename to save evaluation results 
+- (optional) skip_existing_pred: skip and not predict if output file is found existing
 
-For validation of SAM and SAM-Med2D on 3D volumetric data, you can refer to `infer_sam.sh` and `infer_med2d.sh` for details.
+**Sliding-window Inference (experimental)**: To extend the application scenario of SAM-Med3D and support more choices for full-volume inference. We provide the sliding-window mode here within `inference.py`. 
+```
+python inference.py --seed 2024\
+ -cp ./ckpt/sam_med3d_turbo.pth \
+ -tdp ./data/medical_preprocessed -nc 1 \
+ --output_dir ./results  --task_name test_amos_move \
+ --sliding_window --save_image_and_gt
+```
+- cp: checkpoint path
+- tdp: test data path, where your data is placed
+- output_dir&task_name: all your output will be saved to `<output_dir>/<task_name>`
+- (optional) sliding_window: enable the sliding-window mode. model will infer 27 patches with improved accuracy and slower responce.
+- (optional) save_image_and_gt: enable saving the full-volume image and ground-truth into `output_dir`, plz ensure your disk has enough free space when you turn on this
 
-Hint: We also provide a simple script `sum_result.py` to help summarize the results from file like `./results/sam_med3d.py`. 
+For validation of SAM and SAM-Med2D on 3D volumetric data, you can refer to `scripts/val_sam.sh` and `scripts/val_med2d.sh` for details.
+
+Hint: We also provide a simple script `sum_result.py` to help summarize the results from files like `./results/sam_med3d.py`. 
 
 ## 🔗 Checkpoint
+**Our most recommended version is SAM-Med3D-turbo**
+
 | Model | Google Drive | Baidu NetDisk |
 |----------|----------|----------|
 | SAM-Med3D | [Download](https://drive.google.com/file/d/1PFeUjlFMAppllS9x1kAWyCYUJM9re2Ub/view?usp=drive_link) | [Download (pwd:r5o3)](https://pan.baidu.com/s/18uhMXy_XO0yy3ODj66N8GQ?pwd=r5o3) |
 | SAM-Med3D-organ    | [Download](https://drive.google.com/file/d/1kKpjIwCsUWQI-mYZ2Lww9WZXuJxc3FvU/view?usp=sharing) | [Download (pwd:5t7v)](https://pan.baidu.com/s/1Dermdr-ZN8NMWELejF1p1w?pwd=5t7v) |
 | SAM-Med3D-brain    | [Download](https://drive.google.com/file/d/1otbhZs9uugSWkAbcQLLSmPB8jo5rzFL2/view?usp=sharing) | [Download (pwd:yp42)](https://pan.baidu.com/s/1S2-buTga9D4Nbrt6fevo8Q?pwd=yp42) |
+| SAM-Med3D-turbo    | [Download](https://drive.google.com/file/d/1MuqYRQKIZb4YPtEraK8zTKKpp-dUQIR9/view?usp=sharing) | [Download (pwd:l6ol)](https://pan.baidu.com/s/1OEVtiDc6osG0l9HkQN4hEg?pwd=l6ol) |
 
 Other checkpoints are available with their official link: [SAM](https://drive.google.com/file/d/1_U26MIJhWnWVwmI5JkGg2cd2J6MvkqU-/view?usp=drive_link) and [SAM-Med2D](https://drive.google.com/file/d/1ARiB5RkSsWmAB_8mqWnwDF8ZKTtFwsjl/view?usp=drive_link).
 
@@ -152,24 +227,27 @@ Other checkpoints are available with their official link: [SAM](https://drive.go
 ### 💡 Overall Performance
 | **Model**    | **Prompt**   | **Resolution**                 | **Inference Time (s)** | **Overall Dice** |
 |--------------|--------------|--------------------------------|------------------|------------------|
-| SAM          | N points     | 1024×1024×N                    | 13               | 17.01            |
-| SAM-Med2D    | N points     | 256×256×N                      | 4                | 42.75            |
-| SAM-Med3D    | 1 point      | 128×128×128                    | 2                | 49.91            |
-| SAM-Med3D    | 10 points    | 128×128×128                    | 6                | 60.94            |
+| SAM          | N points     | 1024×1024×N                    | 13               | 16.15            |
+| SAM-Med2D    | N points     | 256×256×N                      | 4                | 36.83            |
+| SAM-Med3D    | 1 point      | 128×128×128                    | 2                | 38.65            |
+| SAM-Med3D    | 10 points    | 128×128×128                    | 6                | 49.02            |
+| **SAM-Med3D-turbo** | 1 points | 128×128×128                 | 6                | 76.27            |
+| **SAM-Med3D-turbo** | 10 points | 128×128×128                | 6                | 80.71            |
 
 > **Note:** Quantitative comparison of different methods on our evaluation dataset. Here, N denotes the count of slices containing the target object (10 ≤ N ≤ 200). Inference time is calculated with N=100, excluding the time for image processing and simulated prompt generation.
 
 
 
 ### 💡 Dice on Different Anatomical Architecture and Lesions
-| **Model**    | **Prompt**   | **A&T** | **Bone** | **Brain** | **Cardiac** | **Gland** | **Muscle** | **Seen Lesion** | **Unseen Lesion** |
-|--------------|--------------|---------|----------|-----------|-------------|-----------|------------|-----------------|-------------------|
-| SAM          | N points     | 17.19   | 22.32    | 17.68     | 2.82        | 11.62     | 3.50       | 12.03           | 8.88              |
-| SAM-Med2D    | N points     | 46.79   | 47.52    | 19.24     | 32.23       | 43.55     | 35.57      | 26.08           | 44.87             |
-| SAM-Med3D    | 1 point      | 46.80   | 54.77    | 34.48     | 46.51       | 57.28     | 53.28      | 42.02           | 40.53             |
-| SAM-Med3D    | 10 points    | 55.81   | 69.13    | 40.71     | 52.86       | 65.01     | 67.28      | 50.52           | **48.44**            |
-| **SAM-Med3D-brain** | 10 points | 51.71   | -        | **62.77**     | 37.93       | 62.95     | 43.70      | 45.89           | 20.51             |
-| **SAM-Med3D-organ** | 10 points | **70.63**   | -        | 46.49     | **63.14**       | **73.01**     | **75.29**      | **53.02**           | 36.44             |
+| **Model**    | **Prompt**   | **A&T** | **Bone** | **Brain** | **Cardiac** | **Muscle** | **Lesion** | **Unseen Organ** | **Unseen Lesion** |
+|--------------|--------------|---------|----------|-----------|-------------|------------|------------|-----------------|-------------------|
+| SAM          | N points     | 19.93   | 17.85    | 29.73     | 8.44        | 3.93       | 11.56      | 12.14           | 8.88   |
+| SAM-Med2D    | N points     | 50.47   | 32.70    | 36.00     | 40.18       | 43.85      | 24.90      | 19.36           | 44.87  |
+| SAM-Med3D    | 1 point      | 46.12   | 33.30    | 49.14     | 61.04       | 53.78      | 39.56      | 23.85           | 40.53  |
+| SAM-Med3D    | 10 points    | 58.61   | 43.52    | 54.01     | 68.50       | 69.45      | 47.87      | 29.05           | 48.44  |
+| **SAM-Med3D-turbo** |  1 points | 80.76 | 83.38  | 43.74     | 87.12       | 89.74      | 58.06      | 35.99           | 44.22  |
+| **SAM-Med3D-turbo** | 10 points | 85.42 | 85.34  | 61.27     | 90.97       | 91.62      | 64.80      | 48.10           | 62.72  |
+
 
 > **Note:** Comparison from the perspective of anatomical structure and lesion. A&T represents Abdominal and Thorax targets. N denotes the count of slices containing the target object (10 ≤ N ≤ 200).
 
@@ -207,8 +285,8 @@ Other checkpoints are available with their official link: [SAM](https://drive.go
 This project is released under the [Apache 2.0 license](LICENSE). 
 
 ## 💬 Discussion Group
-<p align="center"><img width="300" alt="image" src="assets/QRCode.jpg"></p> 
-(If the QRCode is expired, please contact the Wechat account: Eugene Yonng.)
+<p align="center"><img width="100" alt="image" src="assets/QRCode.jpg"></p> 
+(If the QRCode is expired, please contact the WeChat account: EugeneYonng or Small_dark8023，please note with "add sammed3d wechat"/请备注“sammed3d交流群”.)
 
 BTW, welcome to follow our [Zhihu official account](https://www.zhihu.com/people/gmai-38), we will share more information on medical imaging there.
 
