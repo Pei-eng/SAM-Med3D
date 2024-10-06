@@ -1,7 +1,3 @@
-
-import torch
-import torch.nn.functional as F
-
 # set up environment
 import numpy as np
 import random 
@@ -12,7 +8,6 @@ import os
 join = os.path.join
 from tqdm import tqdm
 from torch.backends import cudnn
-import torch
 import torch
 import torch.nn as nn
 import torch.distributed as dist
