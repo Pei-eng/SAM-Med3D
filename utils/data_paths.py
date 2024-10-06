@@ -374,6 +374,8 @@ img_datas = [
 'sam3d_train/medical_data_all/white_matter/iseg2019_mr_t2',
 'sam3d_train/medical_data_all/white_matter_hyperintensity/WMH_mr_flair',
 'sam3d_train/medical_data_all/white_matter_hyperintensity/WMH_mr_t1',
+'/content/SAM-Med3D/data/iNPH/train/NPH',
+'/content/SAM-Med3D/data/iNPH/train/Normal',
 ]
 
 all_classes = [
