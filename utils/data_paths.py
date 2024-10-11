@@ -686,4 +686,5 @@ all_datasets = [
 'iseg2019_mr_t1',
 'iseg2019_mr_t2',
 'mnms_mr_unknown',
+'iNPH',
 ]
