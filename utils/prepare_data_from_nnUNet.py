@@ -52,8 +52,27 @@ def resample_nii(input_path: str, output_path: str, target_spacing: tuple = (1.5
 
 dataset_root = "./data"
 dataset_list = [
-    'AMOS_val',
-]
+'/content/SAM-Med3D/data/iNPH/train/NPH/NPH_Original',
+'/content/SAM-Med3D/data/iNPH/train/NPH/NPH_L_Ventri_Mask',
+'/content/SAM-Med3D/data/iNPH/train/NPH/NPH_R_Ventri_Mask',
+'/content/SAM-Med3D/data/iNPH/train/NPH/NPH_T_Ventri_Mask',
+'/content/SAM-Med3D/data/iNPH/train/Normal/Nor_Adu_F_Ori',
+'/content/SAM-Med3D/data/iNPH/train/Normal/Nor_Adu_F_L',
+'/content/SAM-Med3D/data/iNPH/train/Normal/Nor_Adu_F_R',
+'/content/SAM-Med3D/data/iNPH/train/Normal/Nor_Adu_F_T',
+'/content/SAM-Med3D/data/iNPH/train/Normal/Nor_Adu_M_Ori',
+'/content/SAM-Med3D/data/iNPH/train/Normal/Nor_Adu_M_L',
+'/content/SAM-Med3D/data/iNPH/train/Normal/Nor_Adu_M_R',
+'/content/SAM-Med3D/data/iNPH/train/Normal/Nor_Adu_M_T',
+'/content/SAM-Med3D/data/iNPH/train/Normal/Nor_Eld_F_Ori',
+'/content/SAM-Med3D/data/iNPH/train/Normal/Nor_Eld_F_L',
+'/content/SAM-Med3D/data/iNPH/train/Normal/Nor_Eld_F_R',
+'/content/SAM-Med3D/data/iNPH/train/Normal/Nor_Eld_F_T',
+'/content/SAM-Med3D/data/iNPH/train/Normal/Nor_Eld_M_Ori',
+'/content/SAM-Med3D/data/iNPH/train/Normal/Nor_Eld_M_L',
+'/content/SAM-Med3D/data/iNPH/train/Normal/Nor_Eld_M_R',
+'/content/SAM-Med3D/data/iNPH/train/Normal/Nor_Eld_M_T',
+] # 'AMOS_val'
 
 target_dir = "./data/medical_preprocessed"
 
