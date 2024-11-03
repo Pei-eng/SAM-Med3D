@@ -33,7 +33,7 @@ class PromptEncoder3D(nn.Module):
         image_embedding_size: Tuple[int, int, int],
         input_image_size: Tuple[int, int, int],
         mask_in_chans: int,
-        activation: Type[nn.Module] = nn.GELU,
+        activation: Type[nn.Module] = nn.Mish,
     ) -> None:
         """
         Encodes prompts for input to SAM's mask decoder.
